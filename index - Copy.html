@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+ <meta charset="utf-8" />
+ <title>Map of traditional markets in Palestine</title>
+ <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+ <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+ <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+ <style>
+ body {
+ margin: 0;
+ height: 100%;
+ width: 100%;
+ }
+ #map {
+ position: absolute;
+ width: 100%;
+ height: 100%;
+ }
+ .legend {
+ background: white;
+ padding: 10px;
+ border-radius: 5px;
+ box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+ position: absolute;
+ bottom: 20px;
+ left: 20px;
+ z-index: 1000;
+ }
+ .market-list {
+ background: white;
+ padding: 10px;
+ border-radius: 5px;
+ box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+ position: absolute;
+ top: 20px;
+ right: 20px;
+ z-index: 1000;
+ }
+ .market-list ul {
+ list-style: none;
+ padding: 0;
+ margin: 0;
+ }
+ .market-list ul li {
+ margin: 5px 0;
+ cursor: pointer;
+ Color: blue;
+ text-decoration: underline;
+ }
+ .suggestion-box {
+ position: absolute;
+ bottom: 20px;
+ right: 20px;
+ background: white;
+ padding: 15px;
+ border-radius: 10px;
+ box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+ z-index: 1000;
+ max-width: 300px;
+ }
+ .suggestion-box h4 {
+ margin: 0 0 10px 0;
+ font-size: 1.2em;
+ text-align: center;
+ }
+ .suggestion-box textarea {
+ width: 100%;
+ height: 80px;
+ border: 1px solid #ccc;
+ border-radius: 5px;
+ padding: 5px;
+ margin-bottom: 10px;
+ }
+ .suggestion-box button {
+ width: 100%;
+ padding: 10px;
+ background: #007BFF;
+ color: white;
+ border: none;
+ border-radius: 5px;
+ cursor: pointer;
+ transition: 0.3s;
+ }
+ .suggestion-box button:hover {
+ background: #0056b3;
+ }
+ .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background: white; /* تعيين خلفية بيضاء */
+  color: #333;        /* تعيين لون النص */
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4); /* إضافة ظل حول الـ popup */
+  width: 600px;       /* تعيين عرض الـ popup */
+  max-width: 90vw;    /* أقصى عرض سيكون 90% من عرض الشاشة */
+  max-height: 80vh;   /* أقصى ارتفاع سيكون 80% من ارتفاع الشاشة */
+  overflow: auto;     /* تمكين التمرير إذا كان المحتوى أكبر من الحجم */
+  border-radius: 10px; /* إضافة زوايا دائرية للـ popup */
+  padding: 15px;      /* إضافة padding حول المحتوى داخل الـ popup */
+  box-sizing: border-box; /* تضمين padding داخل الحجم */
+}
+.leaflet-popup-content {
+    width: 500px;
+}
+.leaflet-popup-content p {
+    width: 500px;  /* تعيين عرض النص داخل الـ popup إلى 600px */
+    max-width: 90vw;  /* تعيين أقصى عرض ليكون 90% من عرض الشاشة */
+    height: auto; /* الارتفاع يتغير بناءً على المحتوى */
+    padding: 15px; /* إضافة مسافة داخل النص لجعل العرض أكثر توازنًا */
+    color: #333; /* لون النص */
+    font-family: Arial, sans-serif; /* تحديد نوع الخط */
+    font-size: 1.1em; /* زيادة حجم الخط */
+    line-height: 1.6; /* زيادة تباعد الأسطر لتوضيح النص */
+    word-wrap: break-word; /* كسر الكلمات الطويلة لتتناسب مع العرض */
+    overflow-wrap: break-word; /* إضافة لكسر الكلمات الطويلة إذا لزم الأمر */
+    margin: 0; /* إزالة أي هوامش غير ضرورية */
+    text-align: justify; /* محاذاة النص بشكل متساوي على كلا الجانبين */
+   direction: rtl;
+}
+.leaflet-popup-content {
+    width: 500px;  /* تعيين عرض النص داخل الـ popup إلى 500px */
+    max-width: 500حء;  /* تعيين أقصى عرض ليكون 90% من عرض الشاشة */
+    height: auto; /* ارتفاع النص يتغير بناءً على المحتوى */
+    padding: 15px; /* إضافة مسافة داخل النص لجعل العرض أكثر توازنًا */
+    color: #333; /* تحديد لون النص */
+    font-family: Arial, sans-serif; /* تحديد نوع الخط */
+    font-size: 1.2em; /* حجم الخط */
+    line-height: 1.5; /* تباعد الأسطر لزيادة وضوح النص */
+    word-wrap: break-word; /* كسر الكلمات الطويلة لتتناسب مع العرض المحدد */
+    overflow-wrap: break-word; /* إضافة لكسر الكلمات الطويلة إذا لزم الأمر */
+    margin: 0; /* إزالة الهوامش */
+    text-align: justify; /* محاذاة النص بشكل متساوي على كلا الجانبين */
+}
+
+/* تخصيص النص داخل العناوين داخل الـ popup */
+.leaflet-popup-content h3 {
+    font-size: 1.5em;  /* تحديد حجم الخط للعناوين */
+    color: #007BFF;    /* تحديد لون العنوان */
+    margin-bottom: 10px; /* إضافة مسافة أسفل العنوان */
+    text-align: right;
+}
+
+ marker.bindPopup(content, {
+  maxWidth: 900,   // أقصى عرض للـ popup
+  maxHeight: 700,  // أقصى ارتفاع للـ popup
+  autoPan: true    // السماح بتحريك الخريطة عند فتح الـ popup
+});
+ </style>
+</head>
+<body>
+ <div id="map"></div>
+ <div class="legend">
+ <h4>MapKey</h4>
+ <ul>
+ <li><span style="background-color: red; padding: 2px 6px; border-radius: 50%;"></span> الأسواق المفتوحة</li>
+ <li><span style="background-color: gray; padding: 2px 6px; border-radius: 50%;"></span> الأسواق المغلقة</li>
+ </ul>
+ </div>
+
+
+  <div class="market-list">
+    <h4>الأسواق</h4>
+    <ul id="market-links"></ul>
+  </div>
+  <div class="suggestion-box">
+    <h4>صندوق الاقتراحات</h4>
+    <form action="mailto:sshoroq@gmail.com" method="post" enctype="text/plain">
+      <textarea id="suggestion" name="suggestion" placeholder="اكتب اقتراحك هنا..." required></textarea>
+      <button type="submit">إرسال</button>
+    </form>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script>
+    const apiKey = '72f497d99380c923b26fa825cca38718';
+
+    const map = L.map('map', {
+      zoomControl: true
+    }).setView([31.7767, 35.2332], 8);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    const markers = L.markerClusterGroup();
+
+    const markets = [
+      {
+        name: "سوق القطانين",
+        coordinates: [31.7767, 35.2332],
+        description: "سوق القطانين هو أحد أسواق مدينة القدس يقع غربي الحرم القدسي الشريف، وملاصق له يمتد من الشرق إلى الغرب فيه دكاكين يظهر من بنائها أنها ليست قديمة العهد، أما السوق نفسه فهو قديم العهد، كانت على عهد المماليك من أحسن أسواق المدينة وأكثرها ازدحاماً وأتقنها بناءً وارتفاعاً، في وسطها حمام يسمى حمام الشفا وهو خاص بالرجال، وعند منتهاها الغربي حمام آخر يعرف بحمام العين يرتاده الرجال والنساء في أوقات مختلفة، وأمامها من الناحية الغربية شارع مواصل إلى دار الأيتام الإسلامية فحارة القرمي فسوق باب خان الزيت. وينسب اسمه إلى الأمير سيف الدين تنكز الناصري نائب الشام الذي أنشاه في سنة (737هـ- 1336م)، وتم ترميمه عام 1929على يد المجلس الإسلامي الأعلى..",
+
+        openHours: "08:00 - 19:00",
+        isOpen: true,
+        images: ["sooq-alqttanen.jpeg"],
+        videos: ["https://www.youtube.com/watch?v=lYyiwR9e1PQ"],
+        streetView:  "https://www.google.com/maps/place/Qattaneen+market/@31.7685167,35.2135313,3a,75y,90t/data=!3m8!1e2!3m6!1sAF1QipPrnuo0RK_0ZUvZmuOdEO-asft4A1ildpFxh8kf!2e10!3e12!6shttps:%2F%2Flh5.googleusercontent.com%2Fp%2FAF1QipPrnuo0RK_0ZUvZmuOdEO-asft4A1ildpFxh8kf%3Dw203-h234-k-no!7i1774!8i2048!4m7!3m6!1s0x1502d7d634ea0083:0xb52dcf1a1aacffd4!8m2!3d31.768319!4d35.21371!10e5!16s%2Fg%2F121p7255?entry=ttu&g_ep=EgoyMDI0MTIxMS4wIKXMDSoASAFQAw%3D%3D",
+        gps: "https://maps.app.goo.gl/uYFNvuwg6cVdAJJ79",
+        audio: "alqattaneen.mp3",
+        reviews: ["تجربة رائعة!", "أفضل سوق زرتُه!"],
+       nearbyParking: "حيث يمكن ركن السيارة مجانًا واستخدام المواصلات العامة للوصول إلى مركز المدينة..",
+        publicTransport: "تتوفر حافلات النقل العام وسيارات الأجرة التي تصل إلى البلدة القديمة في القدس. يمكن للزوار استخدام هذه الوسائل للوصول إلى مداخل البلدة القديمة، ثم السير على الأقدام للوصول إلى سوق القطانين.."
+      },
+
+      {
+        name: "سوق خان السلطان",
+        coordinates: [31.7778, 35.2295],
+        description: "خان السلطان أو الوكالة، هو خان يقع في الطرف الشمالي من زقاق مغطى يخرج من طريق باب السلسلة إلى الشمال، بالقرب من شرق شارع سوق الصاغة، وسط البلدة القديمة في القدس، وهو لا يبعد سوى مئات الأمتار من المسجد الأقصى.",
+
+        openHours: "09:00 - 20:00",
+        isOpen: true,
+        images: ["Khan-as-Sultan-.jpg"],
+        videos: ["https://www.youtube.com/watch?v=DIwyrwkUbMo"],
+        streetView:  "https://www.google.com/maps/place/Sultan+Khan/@31.7762891,35.2316757,3a,81.7y,90t/data=!3m8!1e2!3m6!1sAF1QipPmVQaajR4tVT5H2GYlJZoYylE7ucZvr_wlyTnh!2e10!3e12!6shttps:%2F%2Flh5.googleusercontent.com%2Fp%2FAF1QipPmVQaajR4tVT5H2GYlJZoYylE7ucZvr_wlyTnh%3Dw203-h152-k-no!7i720!8i540!4m7!3m6!1s0x150329c931ff4dfd:0xc6ed85a68197eb30!8m2!3d31.7768669!4d35.2316769!10e5!16s%2Fg%2F1ydkhrs_c?entry=ttu&g_ep=EgoyMDI0MTIxMS4wIKXMDSoASAFQAw%3D%3D",
+        gps: "https://maps.app.goo.gl/x7SzPRW6m5xMNL8B9",
+
+        audio: "khan-sultan.wav",
+        reviews: ["منتجات رائعة!", "زيوت بجودة عالية!"],
+         nearbyParking: "تتوفر حافلات النقل العام وسيارات الأجرة التي تصل إلى البلدة القديمة في القدس. يمكن للزوار استخدام هذه الوسائل للوصول إلى مداخل البلدة القديمة.",
+        publicTransport: "المواصلات العامة: تتوفر حافلات النقل العام وسيارات الأجرة التي تصل إلى البلدة القديمة في القدس. يمكن للزوار استخدام هذه الوسائل للوصول إلى مداخل البلدة القديمة، ثم السير على الأقدام للوصول إلى سوق القطانين.."
+      },
+{
+  name: "سوق فراس الشعبي",
+  coordinates: [31.5165, 34.4576], // إحداثيات سوق فراس الشعبي
+  description: "سوق فراس الشعبي هو أحد الأسواق التقليدية في مدينة غزة، ويعد مركزًا تجاريًا هامًا يوفر للزوار والسكان المحليين مجموعة متنوعة من المنتجات مثل الخضروات والفواكه الطازجة، اللحوم، التوابل، والألبسة التقليدية. يتميز السوق بأجوائه الشعبية المليئة بالحركة والنشاط.",
+  openHours: "07:00 - 20:00",
+  isOpen: true,
+  images: ["firas.jpeg"], // استبدلها برابط الصورة الفعلية
+  videos: ["https://www.youtube.com/watch?v=RDlzOwFJSVU"], // استبدلها برابط الفيديو الفعلي
+  streetView: "https://www.google.com/maps/place/%D8%B3%D9%88%D9%82+%D9%81%D8%B1%D8%A7%D8%B3+%D8%A7%D9%84%D8%B4%D8%B9%D8%A8%D9%8A%E2%80%AD/@31.5070921,34.4582025,3a,75y,90t/data=!3m8!1e2!3m6!1sAF1QipPjtkFBEeKxItXUlg6ISZFm_cfxtQD7OOoDzWSh!2e10!3e12!6shttps:%2F%2Flh5.googleusercontent.com%2Fp%2FAF1QipPjtkFBEeKxItXUlg6ISZFm_cfxtQD7OOoDzWSh%3Dw203-h270-k-no!7i3024!8i4032!4m11!1m2!2m1!1z2LPZiNmCINmB2YTYs9i32YrZhiDYp9mE2YLYr9mK2YU!3m7!1s0x14fd7f747da5073d:0xd154df48ea0086b9!8m2!3d31.5073435!4d34.4580304!10e5!15sCiDYs9mI2YIg2YHZhNiz2LfZitmGINin2YTZgtiv2YrZhVoiIiDYs9mI2YIg2YHZhNiz2LfZitmGINin2YTZgtiv2YrZhZIBD3Nob3BwaW5nX2NlbnRlcpoBJENoZERTVWhOTUc5blMwVkpRMEZuU1VOWGJWQXplamxCUlJBQuABAPoBBAgAEDs!16s%2Fg%2F11bzrnfjrt?entry=ttu&g_ep=EgoyMDI0MTIxMS4wIKXMDSoASAFQAw%3D%3D", // رابط افتراضي
+    audio: "firas.mp3", // رابط ملف الصوت إذا كان متوفرًا
+  reviews: ["سوق رائع ومتنوع!", "مكان مثالي للتسوق الشعبي!"],
+  nearbyParking: "توجد مواقف سيارات قريبة من السوق، مما يسهل الوصول إليه.",
+  publicTransport: "تتوفر حافلات النقل العام وسيارات الأجرة التي تصل إلى السوق بسهولة."
+}
+,
+{
+  name: "سوق رام الله",
+  coordinates: [31.9025, 35.2042], // إحداثيات سوق رام الله
+  description: "سوق رام الله هو واحد من أقدم الأسواق في فلسطين، يتميز بالحياة النشطة والتنوع الكبير في المنتجات المعروضة، مثل الخضروات الطازجة، التوابل، الملابس التقليدية، والحرف اليدوية. يقع في قلب المدينة، مما يجعله نقطة جذب رئيسية للسكان المحليين والزوار.",
+  openHours: "08:00 - 20:00",
+  isOpen: true,
+  images: ["ramallah.jpg"], // استبدلها برابط الصورة الفعلية
+  videos: ["https://www.youtube.com/watch?v=KKdG2X9HY50"], // استبدلها برابط الفيديو الفعلي
+  streetView: "https://www.google.com/maps/@31.9042131,35.2038957,3a,75y,29.37h,89.16t/data=!3m7!1e1!3m5!1sbugQsGA5hiN6pyvgsHjRsA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0.8376896269191292%26panoid%3DbugQsGA5hiN6pyvgsHjRsA%26yaw%3D29.3681281731574!7i13312!8i6656?entry=ttu&g_ep=EgoyMDI0MTIxMS4wIKXMDSoASAFQAw%3D%3D", // رابط Google Street View
+  gps: "https://maps.app.goo.gl/DgtKUmGCFZiquBRC8", // رابط GPS
+  audio: "ramallah.mp3", // رابط ملف الصوت إذا كان متوفرًا
+  reviews: ["سوق رائع ومتنوع!", "أفضل مكان لشراء المنتجات الطازجة!"],
+  nearbyParking: "تتوفر مواقف سيارات قريبة من السوق، مع إمكانية الوصول بسهولة سيرًا على الأقدام.",
+  publicTransport: "تتوفر حافلات النقل العام وسيارات الأجرة التي تصل إلى وسط مدينة رام الله."
+},
+
+
+
+      {
+        name: "سوق البلدة القديمة - نابلس",
+        coordinates: [32.2211, 35.2599],
+        description: "سوق نابلس القديمة هو واحد من أقدم الأسواق في فلسطين، يتميز بطابعه التراثي وأزقته الضيقة التي تزخر بالمحال التجارية والمنتجات التقليدية. يعكس السوق تاريخ نابلس العريق ويضم بين جنباته حرفًا يدوية ومنتجات محلية تجذب الزوار والسكان على حد سواء..",
+        openHours: "08:00 - 18:00",
+        isOpen: true,
+        images: ["sooq-nablus.jpeg"],
+        videos: ["https://www.youtube.com/watch?v=aXwHBx69BCY"],
+       streetView: "https://www.google.com/maps/place/%D8%AE%D8%A7%D9%86+%D8%A7%D9%84%D8%AA%D8%AC%D8%A7%D8%B1+%D9%86%D8%A7%D8%A8%D9%84%D8%B3+-+Old+City+Shopping+Centre%E2%80%AD/@32.2192895,35.261927,3a,75y,90t/data=!3m8!1e2!3m6!1sAF1QipNV6CAJcjd9un_eCLffSzcC3fyfrJA9w7XKG7HA!2e10!3e12!6shttps:%2F%2Flh5.googleusercontent.com%2Fp%2FAF1QipNV6CAJcjd9un_eCLffSzcC3fyfrJA9w7XKG7HA%3Dw129-h86-k-no!7i5760!8i3840!4m11!1m2!2m1!1z2LPZiNmCINin2YTYqNmE2K_YqSDYp9mE2YLYr9mK2YXYqSDZhtin2KjZhNiz!3m7!1s0x151ce0f4e6c8873d:0xae16993256a81146!8m2!3d32.2192895!4d35.261927!10e5!15sCi3Ys9mI2YIg2KfZhNio2YTYr9ipINin2YTZgtiv2YrZhdipINmG2KfYqNmE2LNaLyIt2LPZiNmCINin2YTYqNmE2K_YqSDYp9mE2YLYr9mK2YXYqSDZhtin2KjZhNizkgEPc2hvcHBpbmdfY2VudGVymgEjQ2haRFNVaE5NRzluUzBWSlEwRm5TVVJvTTNKaFJsQkJFQUXgAQD6AQQIABA5!16s%2Fg%2F11c1qcpt29?entry=ttu&g_ep=EgoyMDI0MTIxMS4wIKXMDSoASAFQAw%3D%3D",
+        gps: "https://www.google.com/maps/dir/?api=1&destination=32.2211,35.2599",
+        audio: "sooq-nablus.wav",
+        reviews: ["منتجات فريدة!", "أفضل سوق في نابلس!"],
+        nearbyParking: "يوجد مواقف سيارات قريبة من سوق نابلس القديم، مما يسهل على الزوار الوصول إليه..",
+        publicTransport: "تتوفر حافلات النقل العام وسيارات الأجرة التي تصل إلى وسط مدينة نابلس. يمكن للزوار النزول في المناطق القريبة من السوق، مثل منطقة باب الساحة أو شارع النصر، ثم السير على الأقدام لدخول السوق القديم.."
+      }
+
+    ];
+
+    async function fetchWeather(lat, lon) {
+      const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ar`;
+      const response = await fetch(url);
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data;
+    }
+
+    markets.forEach(async (market) => {
+      const marker = L.marker(market.coordinates, {
+        icon: L.divIcon({
+          className: market.isOpen ? 'open-market' : 'closed-market',
+          html: `<span style='background-color: ${market.isOpen ? "red" : "gray"}; padding: 6px; border-radius: 50%;'></span>`
+        })
+      });
+
+      const weather = await fetchWeather(...market.coordinates);
+      const weatherInfo = weather ? 
+        `<p><strong>الطقس:</strong> ${weather.weather[0].description}, درجة الحرارة: ${weather.main.temp}°C</p>` :
+        '<p><strong>الطقس:</strong> غير متوفر</p>';
+
+      const content = `
+        <div style="width: 300px;">
+          <h3>${market.name}</h3>
+          <p>${market.description}</p>
+          <p><strong>ساعات العمل:</strong> ${market.openHours}</p>
+          ${weatherInfo}
+          ${market.images.map(image => `<img src="${image}" alt="${market.name}" style="width: 500px; margin-bottom: 10px;">`).join('')}
+             ${market.videos.map(video => {
+  if (video.includes("youtube.com") || video.includes("youtu.be")) {
+    // إذا كان الرابط من يوتيوب، استخدم iframe
+    const videoId = video.split('v=')[1]?.split('&')[0]; // استخراج معرّف الفيديو من الرابط
+    return `<iframe width="500" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  } else {
+    // إذا كان رابط الفيديو من نوع mp4، استخدم video
+    return `<video controls style="width: 100%; margin-bottom: 10px;">
+              <source src="${video}" type="video/mp4">Unsupported video
+            </video>`;
+  }
+}).join('')}
+          <button onclick="openStreetView('${market.streetView}')">فتح التجول الافتراضي</button>
+          <button onclick="window.open('${market.gps}', '_blank')">GPS للوصول</button>
+          <audio controls style="width: 500px; margin-top: 10px;">
+            <source src="${market.audio}" type="audio/mpeg">
+            متصفحك لا يدعم تشغيل الصوت.
+          </audio>
+          <p><strong>التقييمات:</strong> ${market.reviews.join(', ')}</p>
+          <p><strong>مواقف السيارات:</strong> ${market.nearbyParking}</p>
+          <p><strong>المواصلات العامة:</strong> ${market.publicTransport || "غير متوفر."}</p>
+        </div>
+      `;
+
+      marker.bindPopup(content);
+      markers.addLayer(marker);
+
+      const marketLinks = document.getElementById('market-links');
+      const marketItem = document.createElement('li');
+      marketItem.textContent = market.name;
+      marketItem.onclick = () => {
+        map.setView(market.coordinates, 15);
+        marker.openPopup();
+      };
+      marketLinks.appendChild(marketItem);
+    });
+
+    map.addLayer(markers);
+
+    function submitSuggestion() {
+      const suggestion = document.getElementById('suggestion').value;
+      if (suggestion.trim() === '') {
+        alert('يرجى كتابة اقتراح قبل الإرسال.');
+        return;
+      }
+      alert('شكرًا على اقتراحك: ' + suggestion);
+      document.getElementById('suggestion').value = '';
+    }
+
+    function openStreetView(url) {
+      window.open(url, '_blank');
+    }
+let currentLanguage = 'ar'; // اللغة الافتراضية
+
+async function translatePage(targetLanguage) {
+  // استهدف النصوص القابلة للترجمة
+  const textElements = document.querySelectorAll('h3, p, button, .legend h4, .market-list h4, .suggestion-box h4');
+  
+  // جمع النصوص للترجمة
+  const textsToTranslate = Array.from(textElements).map(el => el.textContent);
+
+  // الاتصال بـ Google Translate API
+  const apiKey = 'YOUR_GOOGLE_TRANSLATE_API_KEY'; // ضع مفتاح API الخاص بك هنا
+  const url = 'https://translation.googleapis.com/language/translate/v2';
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      q: textsToTranslate,
+      target: targetLanguage,
+      source: currentLanguage,
+      key: apiKey,
+    }),
+  });
+
+  if (!response.ok) {
+    console.error('Translation API Error:', response.statusText);
+    return;
+  }
+
+  const data = await response.json();
+  const translatedTexts = data.data.translations.map(t => t.translatedText);
+
+  // استبدل النصوص القديمة بالنصوص المترجمة
+  textElements.forEach((el, index) => {
+    el.textContent = translatedTexts[index];
+  });
+
+  // تحديث اللغة الحالية
+  currentLanguage = targetLanguage;
+}
+
+function toggleLanguage() {
+  const targetLanguage = currentLanguage === 'ar' ? 'en' : 'ar';
+  translatePage(targetLanguage);
+}
+
+  </script>
+</body>
+</html>
